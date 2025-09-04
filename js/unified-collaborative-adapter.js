@@ -102,21 +102,64 @@ class UnifiedCollaborativeAdapter {
    * Limpiar localStorage corrupto
    */
   cleanCorruptedStorage() {
-    const keys = ['collaborativeSystemConfig', 'portal_collaboration_system'];
-    keys.forEach(key => {
-      try {
-        const value = localStorage.getItem(key);
-        if (value && value !== 'null' && value !== 'undefined') {
-          // Intentar parsear si parece JSON
-          if (value.startsWith('{') || value.startsWith('[')) {
+    console.log('🧹 Iniciando limpieza profunda de localStorage...');
+    
+    const keysToClean = [];
+    
+    try {
+      // Revisar todas las claves en localStorage
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        
+        try {
+          const value = localStorage.getItem(key);
+          
+          // Detectar valores problemáticos
+          if (!value || 
+              value === 'undefined' || 
+              value === 'null' || 
+              value.includes('[object Object]') ||
+              value === 'NaN') {
+            keysToClean.push(key);
+            continue;
+          }
+          
+          // Intentar parsear JSON si parece serlo
+          if ((value.startsWith('{') || value.startsWith('[')) && value.length > 2) {
             JSON.parse(value);
           }
+          
+        } catch (parseError) {
+          console.warn(`🗑️ Clave corrupta detectada: ${key}`, parseError);
+          keysToClean.push(key);
         }
-      } catch (error) {
-        console.warn(`🧹 Limpiando ${key} corrupto:`, error);
-        localStorage.removeItem(key);
       }
-    });
+      
+      // Limpiar claves problemáticas
+      keysToClean.forEach(key => {
+        console.log(`🗑️ Removiendo: ${key}`);
+        try {
+          localStorage.removeItem(key);
+        } catch (error) {
+          console.error(`❌ Error removiendo ${key}:`, error);
+        }
+      });
+      
+      console.log(`✅ Limpieza completada. ${keysToClean.length} claves removidas.`);
+      
+    } catch (error) {
+      console.error('❌ Error en limpieza de localStorage:', error);
+      
+      // Último recurso: limpiar todo
+      try {
+        console.log('🔄 Limpieza completa de localStorage...');
+        localStorage.clear();
+        console.log('✅ localStorage completamente limpiado');
+      } catch (clearError) {
+        console.error('❌ No se puede limpiar localStorage:', clearError);
+      }
+    }
   }
 
   /**

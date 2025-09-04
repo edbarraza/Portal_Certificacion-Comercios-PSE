@@ -536,6 +536,55 @@
   <!-- Adaptador unificado -->
   <script src="js/unified-collaborative-adapter.js"></script>
   
+  <!-- Script de limpieza de emergencia -->
+  <script>
+    // Limpieza inmediata de localStorage corrupto
+    (function emergencyCleanup() {
+      console.log('🚨 Ejecutando limpieza de emergencia...');
+      try {
+        const problematicKeys = [];
+        
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const key = localStorage.key(i);
+          if (!key) continue;
+          
+          try {
+            const value = localStorage.getItem(key);
+            if (!value || 
+                value === 'undefined' || 
+                value === 'null' || 
+                value.includes('[object Object]') ||
+                value === 'NaN') {
+              problematicKeys.push(key);
+            }
+          } catch (error) {
+            problematicKeys.push(key);
+          }
+        }
+        
+        problematicKeys.forEach(key => {
+          try {
+            localStorage.removeItem(key);
+            console.log(`🗑️ Removido: ${key}`);
+          } catch (error) {
+            console.error(`❌ Error removiendo ${key}:`, error);
+          }
+        });
+        
+        console.log(`✅ Limpieza de emergencia completada. ${problematicKeys.length} elementos removidos.`);
+        
+      } catch (error) {
+        console.error('❌ Error en limpieza de emergencia:', error);
+        try {
+          localStorage.clear();
+          console.log('🔄 localStorage completamente limpiado por emergencia');
+        } catch (e) {
+          console.error('❌ Fallo crítico en limpieza:', e);
+        }
+      }
+    })();
+  </script>
+  
   <!-- Scripts principales -->
   <script src="pdf-export.js"></script>
   <script src="script.js"></script>
