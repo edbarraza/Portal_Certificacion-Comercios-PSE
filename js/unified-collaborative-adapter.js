@@ -72,14 +72,14 @@ class UnifiedCollaborativeAdapter {
       // NUEVO: Limpiar localStorage corrupto
       this.cleanCorruptedStorage();
       
-      // NUEVO: Para GitHub Pages, priorizar JSONBin.io
+      // NUEVO: Para GitHub Pages, usar solo sistema local
       if (window.location.hostname.includes('github.io')) {
-        console.log('🌐 GitHub Pages detectado - Usando JSONBin.io');
+        console.log('🌐 GitHub Pages detectado - Modo demostración activado');
         await this.setupJSONBinForGitHubPages();
         return;
       }
       
-      // Mostrar panel de selección si no hay sistema configurado
+      // Para ejecución local, mostrar panel de selección si no hay sistema configurado
       if (!localStorage.getItem('portal_collaboration_system')) {
         await this.showSystemSelectionModal();
       }
@@ -166,23 +166,104 @@ class UnifiedCollaborativeAdapter {
    * Configurar JSONBin.io para GitHub Pages
    */
   async setupJSONBinForGitHubPages() {
-    console.log('⚙️ Configurando JSONBin.io para GitHub Pages...');
+    console.log('⚙️ Configurando sistema para GitHub Pages...');
     
-    // Verificar si ya está configurado
-    const existingConfig = localStorage.getItem('portal_collaboration_system');
-    if (existingConfig === 'jsonbin') {
-      console.log('✅ JSONBin.io ya configurado');
-      await this.switchToSystem('jsonbin');
-      return;
-    }
+    // Para GitHub Pages, usar modo local por defecto debido a restricciones CORS
+    console.log('🌐 GitHub Pages detectado - Usando sistema local por compatibilidad');
+    console.log('💡 Para colaboración real, descarga el portal y ejecútalo localmente');
+    
+    // Mostrar modal informativo
+    this.showGitHubPagesInfoModal();
+    
+    // Configurar sistema local
+    await this.switchToSystem('local');
+  }
 
-    // Mostrar modal para obtener API key
-    const useJSONBin = await this.showJSONBinSetupModal();
-    if (useJSONBin) {
-      await this.switchToSystem('jsonbin');
-    } else {
-      await this.switchToSystem('local');
-    }
+  /**
+   * Modal informativo para GitHub Pages
+   */
+  showGitHubPagesInfoModal() {
+    const modalHTML = `
+      <div style="
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        max-width: 500px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        font-family: 'Inter', sans-serif;
+      ">
+        <h3 style="color: #1e40af; margin-bottom: 1rem; text-align: center;">
+          🌐 Portal en GitHub Pages
+        </h3>
+        
+        <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #f59e0b;">
+          <p style="margin: 0; color: #92400e; font-size: 0.9rem;">
+            <strong>Modo de Demostración Activo</strong><br>
+            Los datos se guardan solo en tu navegador debido a restricciones CORS de GitHub Pages.
+          </p>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+          <h4 style="color: #374151; margin-bottom: 0.5rem;">Funcionalidades Disponibles:</h4>
+          <ul style="font-size: 0.85rem; color: #6b7280; margin: 0; padding-left: 1.2rem;">
+            <li>✅ Gestión completa de certificaciones</li>
+            <li>✅ Checklists dinámicos</li>
+            <li>✅ Reportes y exportación PDF</li>
+            <li>✅ Estadísticas detalladas</li>
+            <li>⚠️ Datos solo en este navegador</li>
+          </ul>
+        </div>
+
+        <div style="background: #f0f9ff; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+          <h4 style="color: #1e40af; margin-bottom: 0.5rem; font-size: 0.9rem;">Para Colaboración Real:</h4>
+          <p style="font-size: 0.8rem; color: #1e40af; margin: 0;">
+            1. Descarga el código del repositorio<br>
+            2. Abre index.html localmente<br>
+            3. Configura JSONBin.io o GitHub como DB
+          </p>
+        </div>
+
+        <div style="text-align: center;">
+          <button onclick="this.parentElement.parentElement.parentElement.remove()" style="
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+          ">Continuar con Demo</button>
+        </div>
+        
+        <p style="font-size: 0.7rem; color: #9ca3af; text-align: center; margin-top: 1rem;">
+          El portal funciona completamente en modo local
+        </p>
+      </div>
+    `;
+
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      backdrop-filter: blur(4px);
+    `;
+    overlay.innerHTML = modalHTML;
+    document.body.appendChild(overlay);
+
+    // Auto-cerrar después de 8 segundos
+    setTimeout(() => {
+      if (document.body.contains(overlay)) {
+        overlay.remove();
+      }
+    }, 8000);
   }
 
   /**
