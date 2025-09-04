@@ -9,14 +9,15 @@
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- Librerías para exportar PDF - Solo cargar si no es GitHub Pages -->
+  <!-- Librerías para exportar PDF - Con bloqueo preventivo de Sentry -->
   <script>
-    if (!window.location.hostname.includes('github.io')) {
-      // Solo cargar librerías PDF en localhost para evitar problemas en GitHub Pages
-      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>');
-      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>');
-      console.log('📄 Librerías PDF cargadas para localhost');
-    } else {
+    // BLOQUEAR SENTRY ANTES DE CARGAR CUALQUIER LIBRERÍA
+    window.Sentry = undefined;
+    window.__SENTRY__ = undefined;
+    window.SENTRY_SDK = undefined;
+    
+    // Sobrescribir funciones que Sentry podría usar
+    if (window.location.hostname.includes('github.io')) {
       console.log('🌐 GitHub Pages: Librerías PDF omitidas para evitar CORS');
       // Crear mocks para las funciones PDF
       window.html2canvas = function() { 
@@ -25,6 +26,36 @@
       window.jsPDF = function() {
         throw new Error('Exportación PDF no disponible en GitHub Pages');
       };
+    } else {
+      console.log('📄 Cargando librerías PDF con bloqueo Sentry preventivo...');
+      
+      // Bloquear cualquier intento de Sentry durante la carga
+      const originalFetch = window.fetch;
+      window.fetch = function(url) {
+        if (url.toString().includes('sentry') || 
+            url.toString().includes('thereadme') || 
+            url.toString().includes('lucid')) {
+          console.warn('🚫 Sentry bloqueado durante carga de librerías:', url);
+          return Promise.reject(new Error('Sentry bloqueado'));
+        }
+        return originalFetch.apply(this, arguments);
+      };
+      
+      // Cargar librerías después del bloqueo
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>');
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>');
+      
+      // Verificar que se cargaron sin Sentry
+      setTimeout(() => {
+        if (window.html2canvas && window.jsPDF) {
+          console.log('✅ Librerías PDF cargadas exitosamente');
+          
+          // Confirmar que Sentry sigue bloqueado
+          if (window.Sentry === undefined) {
+            console.log('✅ Sentry permanece bloqueado después de cargar librerías');
+          }
+        }
+      }, 1000);
     }
   </script>
 </head>
@@ -555,12 +586,19 @@
   <script>
     // BLOQUEO TOTAL DE APIS EXTERNAS PARA GITHUB PAGES
     (function blockExternalAPIs() {
+      console.log('🚫 INICIANDO bloqueo preventivo de APIs externas...');
+      
+      // BLOQUEO PREVENTIVO DE SENTRY - Ejecutar SIEMPRE
+      window.Sentry = undefined;
+      window.__SENTRY__ = undefined;
+      window.SENTRY_SDK = undefined;
+      Object.defineProperty(window, 'Sentry', {
+        set: function() { console.warn('🚫 Intento de activar Sentry bloqueado'); },
+        get: function() { return undefined; }
+      });
+      
       if (window.location.hostname.includes('github.io')) {
-        console.log('🚫 BLOQUEANDO todas las APIs externas para GitHub Pages');
-        
-        // BLOQUEO ESPECÍFICO DE SENTRY
-        window.Sentry = undefined;
-        window.__SENTRY__ = undefined;
+        console.log('🚫 MODO GITHUB PAGES: Bloqueando todas las APIs externas');
         
         // Sobrescribir fetch para bloquear URLs externas
         const originalFetch = window.fetch;
@@ -571,7 +609,8 @@
           if (urlStr.includes('sentry') || 
               urlStr.includes('thereadme') || 
               urlStr.includes('lucid') ||
-              urlStr.includes('envelope')) {
+              urlStr.includes('envelope') ||
+              urlStr.includes('api/39')) {
             console.warn('🚫 Sentry/External API bloqueado:', urlStr);
             return Promise.reject(new Error('Sentry/External API bloqueado en GitHub Pages'));
           }
@@ -674,6 +713,27 @@
         };
         
         console.log('✅ Sistemas de error reporting desactivados');
+      } else {
+        // TAMBIÉN bloquear Sentry en localhost para estar seguro
+        console.log('🏠 MODO LOCALHOST: Bloqueo preventivo de Sentry activado');
+        
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+          const urlStr = url.toString();
+          
+          if (urlStr.includes('sentry') || 
+              urlStr.includes('thereadme') || 
+              urlStr.includes('lucid') ||
+              urlStr.includes('envelope') ||
+              urlStr.includes('api/39')) {
+            console.warn('🚫 Sentry bloqueado en localhost:', urlStr);
+            return Promise.reject(new Error('Sentry bloqueado preventivamente'));
+          }
+          
+          return originalFetch.apply(this, arguments);
+        };
+        
+        console.log('✅ Bloqueo preventivo de Sentry en localhost activado');
       }
     })();
     
