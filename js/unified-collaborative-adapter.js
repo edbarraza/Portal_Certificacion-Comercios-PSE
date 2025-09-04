@@ -69,18 +69,17 @@ class UnifiedCollaborativeAdapter {
     try {
       console.log('🚀 Inicializando sistema colaborativo unificado...');
       
-      // NUEVO: Para GitHub Pages, usar SOLO sistema local sin intentar conectividad externa
+      // FORZAR modo local para GitHub Pages - Sin modales ni tests
       if (window.location.hostname.includes('github.io')) {
-        console.log('🌐 GitHub Pages detectado - Activando modo demostración local');
-        console.log('💡 Sin APIs externas por restricciones CORS');
+        console.log('🌐 GitHub Pages detectado - Modo demo local FORZADO');
+        console.log('💡 Sin APIs externas ni modales por restricciones CORS');
         
-        // Configurar directamente como local sin modales ni tests
+        // Configuración directa y silenciosa
         localStorage.setItem('portal_collaboration_system', 'local');
-        await this.switchToSystem('local');
+        this.currentSystem = 'local';
         
-        // Mostrar modal informativo después de inicializar
-        setTimeout(() => this.showGitHubPagesInfoModal(), 2000);
-        return;
+        console.log('✅ Sistema colaborativo LOCAL inicializado (GitHub Pages)');
+        return; // SALIR INMEDIATAMENTE sin más operaciones
       }
       
       // Para ejecución local, funcionalidad completa
@@ -100,7 +99,8 @@ class UnifiedCollaborativeAdapter {
       
       // Fallback a sistema local
       console.log('🔄 Fallback a sistema local...');
-      await this.switchToSystem('local');
+      this.currentSystem = 'local';
+      localStorage.setItem('portal_collaboration_system', 'local');
     }
   }
   
@@ -799,9 +799,17 @@ class UnifiedCollaborativeAdapter {
   }
   
   mostrarEstadoConexion() {
+    // En GitHub Pages no mostrar estado para evitar CORS
+    if (window.location.hostname.includes('github.io')) {
+      console.log('🌐 Estado de conexión: Modo demo local (GitHub Pages)');
+      return Promise.resolve();
+    }
+    
     if (this.currentSystem && this.currentSystem.mostrarEstadoConexion) {
       return this.currentSystem.mostrarEstadoConexion();
     }
+    
+    return Promise.resolve();
   }
   
   async mostrarEstadisticas() {

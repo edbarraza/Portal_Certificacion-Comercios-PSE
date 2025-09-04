@@ -63,14 +63,18 @@ document.addEventListener('DOMContentLoaded', async function() {
     await collaborativeAdapter.initialize();
     console.log('✅ Sistema de persistencia colaborativo inicializado');
     
-    // Mostrar estado del sistema después de 2 segundos
-    setTimeout(() => {
-      try {
-        collaborativeAdapter.mostrarEstadoConexion();
-      } catch (error) {
-        console.log('ℹ️ Estado de conexión no disponible en modo demo');
-      }
-    }, 2000);
+    // Para GitHub Pages NO intentar mostrar estado para evitar errores
+    if (!window.location.hostname.includes('github.io')) {
+      setTimeout(() => {
+        try {
+          collaborativeAdapter.mostrarEstadoConexion();
+        } catch (error) {
+          console.log('ℹ️ Estado de conexión no disponible en modo demo');
+        }
+      }, 2000);
+    } else {
+      console.log('🌐 GitHub Pages: Estado de conexión omitido para evitar CORS');
+    }
   } catch (error) {
     console.error('❌ Error inicializando persistencia:', error);
   }
