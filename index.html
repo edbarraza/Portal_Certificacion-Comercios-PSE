@@ -538,48 +538,54 @@
   
   <!-- Script de limpieza de emergencia -->
   <script>
-    // Limpieza inmediata de localStorage corrupto
+    // Limpieza inmediata y completa de localStorage corrupto
     (function emergencyCleanup() {
-      console.log('🚨 Ejecutando limpieza de emergencia...');
+      console.log('🚨 LIMPIEZA TOTAL DE EMERGENCIA...');
+      
       try {
-        const problematicKeys = [];
+        // Paso 1: Limpiar completamente localStorage
+        console.log('🧹 Limpiando localStorage completamente...');
+        localStorage.clear();
         
-        for (let i = localStorage.length - 1; i >= 0; i--) {
-          const key = localStorage.key(i);
-          if (!key) continue;
-          
-          try {
-            const value = localStorage.getItem(key);
-            if (!value || 
-                value === 'undefined' || 
-                value === 'null' || 
-                value.includes('[object Object]') ||
-                value === 'NaN') {
-              problematicKeys.push(key);
-            }
-          } catch (error) {
-            problematicKeys.push(key);
-          }
+        // Paso 2: Verificar que esté limpio
+        if (localStorage.length === 0) {
+          console.log('✅ localStorage completamente limpio');
         }
         
-        problematicKeys.forEach(key => {
+        // Paso 3: Eliminar cualquier resto de configuración problemática
+        const keysToRemove = [
+          'collaborativeSystemConfig',
+          'portal_collaboration_system',
+          'clienteActual',
+          'avances',
+          'camposEstado',
+          'certification_types'
+        ];
+        
+        keysToRemove.forEach(key => {
           try {
             localStorage.removeItem(key);
-            console.log(`🗑️ Removido: ${key}`);
-          } catch (error) {
-            console.error(`❌ Error removiendo ${key}:`, error);
+            sessionStorage.removeItem(key);
+          } catch (e) {
+            console.warn('No se pudo remover:', key);
           }
         });
         
-        console.log(`✅ Limpieza de emergencia completada. ${problematicKeys.length} elementos removidos.`);
+        console.log('✅ Limpieza de emergencia completada exitosamente');
+        
+        // Paso 4: Configurar sistema local por defecto para GitHub Pages
+        if (window.location.hostname.includes('github.io')) {
+          localStorage.setItem('portal_collaboration_system', 'local');
+          console.log('🌐 Sistema local configurado para GitHub Pages');
+        }
         
       } catch (error) {
         console.error('❌ Error en limpieza de emergencia:', error);
-        try {
-          localStorage.clear();
-          console.log('🔄 localStorage completamente limpiado por emergencia');
-        } catch (e) {
-          console.error('❌ Fallo crítico en limpieza:', e);
+        // Último recurso: recargar página una vez
+        if (!sessionStorage.getItem('emergency_reload_done')) {
+          sessionStorage.setItem('emergency_reload_done', 'true');
+          console.log('🔄 Recargando página para limpieza completa...');
+          setTimeout(() => window.location.reload(), 1000);
         }
       }
     })();

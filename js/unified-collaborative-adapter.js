@@ -69,17 +69,23 @@ class UnifiedCollaborativeAdapter {
     try {
       console.log('🚀 Inicializando sistema colaborativo unificado...');
       
-      // NUEVO: Limpiar localStorage corrupto
-      this.cleanCorruptedStorage();
-      
-      // NUEVO: Para GitHub Pages, usar solo sistema local
+      // NUEVO: Para GitHub Pages, usar SOLO sistema local sin intentar conectividad externa
       if (window.location.hostname.includes('github.io')) {
-        console.log('🌐 GitHub Pages detectado - Modo demostración activado');
-        await this.setupJSONBinForGitHubPages();
+        console.log('🌐 GitHub Pages detectado - Activando modo demostración local');
+        console.log('💡 Sin APIs externas por restricciones CORS');
+        
+        // Configurar directamente como local sin modales ni tests
+        localStorage.setItem('portal_collaboration_system', 'local');
+        await this.switchToSystem('local');
+        
+        // Mostrar modal informativo después de inicializar
+        setTimeout(() => this.showGitHubPagesInfoModal(), 2000);
         return;
       }
       
-      // Para ejecución local, mostrar panel de selección si no hay sistema configurado
+      // Para ejecución local, funcionalidad completa
+      this.cleanCorruptedStorage();
+      
       if (!localStorage.getItem('portal_collaboration_system')) {
         await this.showSystemSelectionModal();
       }
@@ -163,20 +169,18 @@ class UnifiedCollaborativeAdapter {
   }
 
   /**
-   * Configurar JSONBin.io para GitHub Pages
+   * Configurar sistema local para GitHub Pages (sin APIs externas)
    */
   async setupJSONBinForGitHubPages() {
     console.log('⚙️ Configurando sistema para GitHub Pages...');
     
-    // Para GitHub Pages, usar modo local por defecto debido a restricciones CORS
-    console.log('🌐 GitHub Pages detectado - Usando sistema local por compatibilidad');
-    console.log('💡 Para colaboración real, descarga el portal y ejecútalo localmente');
+    // Configurar directamente sistema local sin intentar conectividad
+    console.log('🌐 Usando sistema local - Sin APIs externas');
+    localStorage.setItem('portal_collaboration_system', 'local');
+    await this.switchToSystem('local');
     
     // Mostrar modal informativo
-    this.showGitHubPagesInfoModal();
-    
-    // Configurar sistema local
-    await this.switchToSystem('local');
+    setTimeout(() => this.showGitHubPagesInfoModal(), 1000);
   }
 
   /**

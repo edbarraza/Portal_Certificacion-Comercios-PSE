@@ -56,43 +56,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   
   console.clear();
   console.log('🎯 Portal de Certificación iniciando...');
-  
-  // NUEVO: Limpiar localStorage corrupto de forma agresiva
-  try {
-    console.log('🧹 Limpiando localStorage corrupto...');
-    const keysToClean = [];
-    
-    // Encontrar todas las claves problemáticas
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      try {
-        const value = localStorage.getItem(key);
-        if (value && (value.includes('[object Object]') || value === 'undefined' || value === 'null')) {
-          keysToClean.push(key);
-        }
-      } catch (error) {
-        keysToClean.push(key);
-      }
-    }
-    
-    // Limpiar claves problemáticas
-    keysToClean.forEach(key => {
-      console.log(`🗑️ Removiendo clave corrupta: ${key}`);
-      localStorage.removeItem(key);
-    });
-    
-    console.log('✅ localStorage limpiado');
-    
-  } catch (error) {
-    console.error('❌ Error limpiando localStorage:', error);
-    // En caso extremo, limpiar todo
-    try {
-      localStorage.clear();
-      console.log('🔄 localStorage completamente limpiado');
-    } catch (e) {
-      console.error('❌ No se puede limpiar localStorage:', e);
-    }
-  }
 
   // NUEVO: Inicializar sistema de persistencia colaborativo
   try {
@@ -102,7 +65,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Mostrar estado del sistema después de 2 segundos
     setTimeout(() => {
-      collaborativeAdapter.mostrarEstadoConexion();
+      try {
+        collaborativeAdapter.mostrarEstadoConexion();
+      } catch (error) {
+        console.log('ℹ️ Estado de conexión no disponible en modo demo');
+      }
     }, 2000);
   } catch (error) {
     console.error('❌ Error inicializando persistencia:', error);
