@@ -9,9 +9,24 @@
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- Librerías para exportar PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Librerías para exportar PDF - Solo cargar si no es GitHub Pages -->
+  <script>
+    if (!window.location.hostname.includes('github.io')) {
+      // Solo cargar librerías PDF en localhost para evitar problemas en GitHub Pages
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>');
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>');
+      console.log('📄 Librerías PDF cargadas para localhost');
+    } else {
+      console.log('🌐 GitHub Pages: Librerías PDF omitidas para evitar CORS');
+      // Crear mocks para las funciones PDF
+      window.html2canvas = function() { 
+        return Promise.reject(new Error('Exportación PDF no disponible en GitHub Pages')); 
+      };
+      window.jsPDF = function() {
+        throw new Error('Exportación PDF no disponible en GitHub Pages');
+      };
+    }
+  </script>
 </head>
 <body>
   <!-- Layout principal -->
@@ -543,17 +558,32 @@
       if (window.location.hostname.includes('github.io')) {
         console.log('🚫 BLOQUEANDO todas las APIs externas para GitHub Pages');
         
+        // BLOQUEO ESPECÍFICO DE SENTRY
+        window.Sentry = undefined;
+        window.__SENTRY__ = undefined;
+        
         // Sobrescribir fetch para bloquear URLs externas
         const originalFetch = window.fetch;
         window.fetch = function(url, options) {
           const urlStr = url.toString();
+          
+          // Bloquear específicamente Sentry y TheReadme
+          if (urlStr.includes('sentry') || 
+              urlStr.includes('thereadme') || 
+              urlStr.includes('lucid') ||
+              urlStr.includes('envelope')) {
+            console.warn('🚫 Sentry/External API bloqueado:', urlStr);
+            return Promise.reject(new Error('Sentry/External API bloqueado en GitHub Pages'));
+          }
           
           // Permitir solo URLs relativas o del mismo dominio
           if (urlStr.startsWith('./') || 
               urlStr.startsWith('/') || 
               urlStr.startsWith(window.location.origin) ||
               urlStr.startsWith('data:') ||
-              urlStr.startsWith('blob:')) {
+              urlStr.startsWith('blob:') ||
+              urlStr.includes('cdnjs.cloudflare.com') ||
+              urlStr.includes('fonts.googleapis.com')) {
             return originalFetch.apply(this, arguments);
           }
           
@@ -570,11 +600,22 @@
           xhr.open = function(method, url, ...args) {
             const urlStr = url.toString();
             
+            // Bloquear específicamente Sentry
+            if (urlStr.includes('sentry') || 
+                urlStr.includes('thereadme') || 
+                urlStr.includes('lucid') ||
+                urlStr.includes('envelope')) {
+              console.warn('🚫 Sentry XHR bloqueado:', urlStr);
+              throw new Error('Sentry XHR bloqueado en GitHub Pages');
+            }
+            
             if (urlStr.startsWith('./') || 
                 urlStr.startsWith('/') || 
                 urlStr.startsWith(window.location.origin) ||
                 urlStr.startsWith('data:') ||
-                urlStr.startsWith('blob:')) {
+                urlStr.startsWith('blob:') ||
+                urlStr.includes('cdnjs.cloudflare.com') ||
+                urlStr.includes('fonts.googleapis.com')) {
               return originalOpen.apply(this, arguments);
             }
             
@@ -585,7 +626,54 @@
           return xhr;
         };
         
-        console.log('✅ Bloqueo de APIs externas activado');
+        // Sobrescribir navigator.sendBeacon para bloquear envíos de analytics
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon = function(url, data) {
+            console.warn('🚫 sendBeacon bloqueado:', url);
+            return false;
+          };
+        }
+        
+        // Bloquear cualquier intento de cargar Sentry dinámicamente
+        const originalCreateElement = document.createElement;
+        document.createElement = function(tagName) {
+          const element = originalCreateElement.call(document, tagName);
+          
+          if (tagName.toLowerCase() === 'script') {
+            const originalSetAttribute = element.setAttribute;
+            element.setAttribute = function(name, value) {
+              if (name === 'src' && value && 
+                  (value.includes('sentry') || value.includes('thereadme') || value.includes('lucid'))) {
+                console.warn('🚫 Script Sentry bloqueado:', value);
+                return;
+              }
+              return originalSetAttribute.call(this, name, value);
+            };
+          }
+          
+          return element;
+        };
+        
+        console.log('✅ Bloqueo TOTAL de APIs externas y Sentry activado');
+        
+        // DESACTIVAR SISTEMAS DE ERROR REPORTING
+        window.onerror = function() { return true; }; // Suprimir errores
+        window.onunhandledrejection = function() { return true; }; // Suprimir promise rejections
+        
+        // Sobrescribir console.error para evitar que librerías externas detecten errores
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+          // Solo mostrar errores que no sean de Sentry/externos
+          const errorStr = args.join(' ');
+          if (!errorStr.includes('sentry') && 
+              !errorStr.includes('thereadme') && 
+              !errorStr.includes('lucid') &&
+              !errorStr.includes('envelope')) {
+            originalConsoleError.apply(console, args);
+          }
+        };
+        
+        console.log('✅ Sistemas de error reporting desactivados');
       }
     })();
     
