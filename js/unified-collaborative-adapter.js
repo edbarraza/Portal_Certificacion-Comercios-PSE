@@ -69,6 +69,16 @@ class UnifiedCollaborativeAdapter {
     try {
       console.log('🚀 Inicializando sistema colaborativo unificado...');
       
+      // NUEVO: Limpiar localStorage corrupto
+      this.cleanCorruptedStorage();
+      
+      // NUEVO: Para GitHub Pages, priorizar JSONBin.io
+      if (window.location.hostname.includes('github.io')) {
+        console.log('🌐 GitHub Pages detectado - Usando JSONBin.io');
+        await this.setupJSONBinForGitHubPages();
+        return;
+      }
+      
       // Mostrar panel de selección si no hay sistema configurado
       if (!localStorage.getItem('portal_collaboration_system')) {
         await this.showSystemSelectionModal();
@@ -86,6 +96,143 @@ class UnifiedCollaborativeAdapter {
       console.log('🔄 Fallback a sistema local...');
       await this.switchToSystem('local');
     }
+  }
+  
+  /**
+   * Limpiar localStorage corrupto
+   */
+  cleanCorruptedStorage() {
+    const keys = ['collaborativeSystemConfig', 'portal_collaboration_system'];
+    keys.forEach(key => {
+      try {
+        const value = localStorage.getItem(key);
+        if (value && value !== 'null' && value !== 'undefined') {
+          // Intentar parsear si parece JSON
+          if (value.startsWith('{') || value.startsWith('[')) {
+            JSON.parse(value);
+          }
+        }
+      } catch (error) {
+        console.warn(`🧹 Limpiando ${key} corrupto:`, error);
+        localStorage.removeItem(key);
+      }
+    });
+  }
+
+  /**
+   * Configurar JSONBin.io para GitHub Pages
+   */
+  async setupJSONBinForGitHubPages() {
+    console.log('⚙️ Configurando JSONBin.io para GitHub Pages...');
+    
+    // Verificar si ya está configurado
+    const existingConfig = localStorage.getItem('portal_collaboration_system');
+    if (existingConfig === 'jsonbin') {
+      console.log('✅ JSONBin.io ya configurado');
+      await this.switchToSystem('jsonbin');
+      return;
+    }
+
+    // Mostrar modal para obtener API key
+    const useJSONBin = await this.showJSONBinSetupModal();
+    if (useJSONBin) {
+      await this.switchToSystem('jsonbin');
+    } else {
+      await this.switchToSystem('local');
+    }
+  }
+
+  /**
+   * Modal para configurar JSONBin.io
+   */
+  async showJSONBinSetupModal() {
+    return new Promise((resolve) => {
+      const modalHTML = `
+        <div style="
+          background: white;
+          padding: 2rem;
+          border-radius: 12px;
+          max-width: 500px;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+          font-family: 'Inter', sans-serif;
+        ">
+          <h3 style="color: #1e40af; margin-bottom: 1rem; text-align: center;">
+            🌐 Sistema Colaborativo Recomendado
+          </h3>
+          
+          <div style="background: #f0f9ff; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <p style="margin: 0; color: #0c4a6e; font-size: 0.9rem;">
+              <strong>Para GitHub Pages se recomienda JSONBin.io</strong><br>
+              GitHub API tiene restricciones CORS desde este dominio.
+            </p>
+          </div>
+
+          <div style="margin-bottom: 1.5rem;">
+            <h4 style="color: #374151; margin-bottom: 0.5rem;">¿Quieres usar JSONBin.io?</h4>
+            <p style="font-size: 0.8rem; color: #6b7280; margin: 0;">
+              • Es gratuito (30,000 requests/mes)<br>
+              • Permite colaboración en tiempo real<br>
+              • Compatible con GitHub Pages<br>
+              • Fácil configuración
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button onclick="
+              this.parentElement.parentElement.parentElement.remove();
+              window.jsonbinSetupResolve(false);
+            " style="
+              background: #6b7280;
+              color: white;
+              border: none;
+              padding: 0.75rem 1.5rem;
+              border-radius: 6px;
+              cursor: pointer;
+              font-weight: 500;
+            ">Usar Solo Local</button>
+            
+            <button onclick="
+              this.parentElement.parentElement.parentElement.remove();
+              window.jsonbinSetupResolve(true);
+            " style="
+              background: #3b82f6;
+              color: white;
+              border: none;
+              padding: 0.75rem 1.5rem;
+              border-radius: 6px;
+              cursor: pointer;
+              font-weight: 500;
+            ">Configurar JSONBin.io</button>
+          </div>
+          
+          <p style="font-size: 0.7rem; color: #9ca3af; text-align: center; margin-top: 1rem;">
+            Puedes cambiar esto después en configuración
+          </p>
+        </div>
+      `;
+
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        backdrop-filter: blur(4px);
+      `;
+      overlay.innerHTML = modalHTML;
+      document.body.appendChild(overlay);
+
+      window.jsonbinSetupResolve = (useJSONBin) => {
+        delete window.jsonbinSetupResolve;
+        resolve(useJSONBin);
+      };
+    });
   }
   
   /**
