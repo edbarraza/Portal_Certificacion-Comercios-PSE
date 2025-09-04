@@ -538,6 +538,57 @@
   
   <!-- Script de limpieza de emergencia -->
   <script>
+    // BLOQUEO TOTAL DE APIS EXTERNAS PARA GITHUB PAGES
+    (function blockExternalAPIs() {
+      if (window.location.hostname.includes('github.io')) {
+        console.log('🚫 BLOQUEANDO todas las APIs externas para GitHub Pages');
+        
+        // Sobrescribir fetch para bloquear URLs externas
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+          const urlStr = url.toString();
+          
+          // Permitir solo URLs relativas o del mismo dominio
+          if (urlStr.startsWith('./') || 
+              urlStr.startsWith('/') || 
+              urlStr.startsWith(window.location.origin) ||
+              urlStr.startsWith('data:') ||
+              urlStr.startsWith('blob:')) {
+            return originalFetch.apply(this, arguments);
+          }
+          
+          console.warn('🚫 Fetch bloqueado a:', urlStr);
+          return Promise.reject(new Error('API externa bloqueada en GitHub Pages'));
+        };
+        
+        // Sobrescribir XMLHttpRequest
+        const OriginalXHR = window.XMLHttpRequest;
+        window.XMLHttpRequest = function() {
+          const xhr = new OriginalXHR();
+          const originalOpen = xhr.open;
+          
+          xhr.open = function(method, url, ...args) {
+            const urlStr = url.toString();
+            
+            if (urlStr.startsWith('./') || 
+                urlStr.startsWith('/') || 
+                urlStr.startsWith(window.location.origin) ||
+                urlStr.startsWith('data:') ||
+                urlStr.startsWith('blob:')) {
+              return originalOpen.apply(this, arguments);
+            }
+            
+            console.warn('🚫 XHR bloqueado a:', urlStr);
+            throw new Error('API externa bloqueada en GitHub Pages');
+          };
+          
+          return xhr;
+        };
+        
+        console.log('✅ Bloqueo de APIs externas activado');
+      }
+    })();
+    
     // Limpieza inmediata y completa de localStorage corrupto
     (function emergencyCleanup() {
       console.log('🚨 LIMPIEZA TOTAL DE EMERGENCIA...');

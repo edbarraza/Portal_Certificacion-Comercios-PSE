@@ -183,6 +183,21 @@ class LocalJSONAdapter {
         return tipos;
       }
       
+      // 2. Para GitHub Pages, usar datos por defecto directamente
+      if (window.location.hostname.includes('github.io')) {
+        console.log('🌐 GitHub Pages: Usando tipos por defecto sin fetch');
+        return {
+          "oauth": {
+            "nombre": "OAuth 2.0/OpenID Connect",
+            "descripcion": "Certificación de implementación OAuth 2.0 y OpenID Connect",
+            "items": [
+              { id: 1, texto: "Autenticación OAuth 2.0/OpenID Connect implementada", esperado: "El sistema debe autenticar usando OAuth 2.0 o OpenID Connect, siguiendo los estándares de seguridad." },
+              { id: 2, texto: "Uso de tokens JWT válidos", esperado: "Las peticiones deben incluir tokens JWT válidos y no expirados." }
+            ]
+          }
+        };
+      }
+      
       // 2. Cargar desde archivo JSON si existe
       try {
         const response = await fetch('./data/tipos-certificacion.json');
