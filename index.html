@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portal de Certificación PSE</title>
+  
+  <!-- Hojas de estilo -->
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Librerías para exportar PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <!-- Layout principal -->
+  <div class="main-layout">
+    
+    <!-- Sidebar de navegación rediseñado -->
+    <nav class="sidebar sidebar-modern" id="sidebar">
+      <div class="sidebar-header">
+        <h3 class="sidebar-title">
+          <svg class="sidebar-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+          Puntos de Validación
+        </h3>
+        <div class="sidebar-controls">
+          <button class="sidebar-compact-toggle" id="sidebarCompact" title="Modo compacto">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3,3H21V5H3V3M3,7H21V9H3V7M3,11H21V13H3V11M3,15H21V17H3V15M3,19H21V21H3V19Z"/>
+            </svg>
+          </button>
+          <button class="sidebar-toggle" id="sidebarMuesca" title="Contraer panel">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M15.41 7.41L14 6L8 12L14 18L15.41 16.59L10.83 12Z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="sidebar-content" id="sidebarContent">
+        <div class="sidebar-menu" id="sidebarMenu"></div>
+      </div>
+    </nav>
+    
+    <!-- Botón flotante para mostrar sidebar cuando está contraído -->
+    <div class="sidebar-fab" id="sidebarFab" title="Expandir puntos de validación" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+      </svg>
+    </div>
+
+    <!-- Botón flotante discreto para limpiar evidencias -->
+    <div class="clean-fab" id="cleanFab" title="Limpiar evidencias" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+      </svg>
+    </div>
+    
+    <!-- Contenido principal -->
+    <div class="container">
+      <!-- Página de bienvenida -->
+      <div id="welcomePage" class="welcome-page">
+        
+        <!-- Sección principal de acción -->
+        <main class="main-content">
+          <div class="content-wrapper">
+            
+            <!-- Header integrado con diseño cálido -->
+            <div class="integrated-header">
+              <div class="header-brands">
+                <div class="pse-section">
+                  <img src="img/PSE.png" alt="PSE Logo" class="pse-logo">
+                  <div class="brand-text">
+                    <h1 class="main-title">Portal de Certificación</h1>
+                    <h2 class="sub-title">Comercios PSE</h2>
+                    <p class="tagline">Sistema de validación para consumo de servicios</p>
+                  </div>
+                </div>
+                
+                <!-- Botón de administración -->
+                <div class="admin-section">
+                  <button type="button" id="adminBtn" class="admin-btn" title="Configuración y Administración">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11.03L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11.03L19.5,12L19.43,12.97L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.04 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10M11.25,4L10.88,6.61C9.68,6.86 8.62,7.5 7.85,8.39L5.44,7.35L4.69,8.65L6.8,10.2C6.4,11.37 6.4,12.64 6.8,13.8L4.68,15.36L5.43,16.66L7.86,15.62C8.63,16.5 9.68,17.14 10.87,17.38L11.24,20H12.76L13.13,17.39C14.32,17.14 15.37,16.5 16.14,15.62L18.57,16.66L19.32,15.36L17.2,13.81C17.6,12.64 17.6,11.37 17.2,10.2L19.31,8.65L18.56,7.35L16.15,8.39C15.38,7.5 14.32,6.86 13.12,6.62L12.75,4H11.25Z"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Card principal -->
+            <div class="primary-card">
+              <div class="card-header">
+                <div class="icon-wrapper-simple">
+                  <img src="img/store.png" alt="Store Icon" class="store-icon">
+                </div>
+                <div class="card-title-section">
+                  <h3 class="card-title">Gestión de Certificación</h3>
+                  <p class="card-subtitle">Valide o cree una nueva certificación para comercios PSE</p>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <div class="input-section">
+                  <label for="searchClientInput" class="input-label">
+                    NIT del Comercio
+                    <span class="required-indicator">*</span>
+                  </label>
+                  <div class="input-wrapper">
+                    <input 
+                      type="text" 
+                      id="searchClientInput" 
+                      class="nit-input"
+                      placeholder="NIT con dígito de chequeo" 
+                      maxlength="10"
+                      autocomplete="off"
+                    >
+                    <div class="input-hint">Debe contener exactamente 10 dígitos</div>
+                  </div>
+                </div>
+
+                <div class="action-section">
+                  <div class="button-grid">
+                    <button type="button" id="searchBtn" class="btn btn-primary">
+                      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                      </svg>
+                      <span>Buscar</span>
+                    </button>
+                    
+                    <button type="button" id="createBtn" class="btn btn-secondary">
+                      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                      </svg>
+                      <span>Nueva Certificación</span>
+                    </button>
+                  </div>
+                  
+                  <div id="searchMessage" class="message-area"></div>
+                  
+                  <!-- Mensaje informativo -->
+                  <div class="info-message">
+                    <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span>Todos los avances se guardan automáticamente en su navegador</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </main>
+
+        <!-- Logo ACH en footer -->
+        <footer class="ach-footer">
+          <div class="ach-section">
+            <span class="powered-by">powered by</span>
+            <img src="img/ACH.png" alt="ACH Colombia" class="ach-logo">
+          </div>
+        </footer>
+
+      </div>
+
+      <!-- Modal de creación de cliente -->
+      <div id="createClientModal" class="modal" style="display: none;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>🏪 Crear Nuevo Comercio</h3>
+            <button type="button" id="closeModalBtn" class="close-btn">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="clientNit">NIT del Comercio:</label>
+              <input type="text" id="clientNit" placeholder="NIT con dígito de chequeo" maxlength="10" readonly>
+            </div>
+            <div class="form-group">
+              <label for="clientName">Nombre del Comercio:</label>
+              <input type="text" id="clientName" placeholder="Nombre completo del comercio" maxlength="100">
+            </div>
+            <div class="form-group">
+              <label for="certificationType">Tipo de Certificación:</label>
+              <select id="certificationType">
+                <option value="">Seleccione el tipo de certificación</option>
+                <option value="pse-avanzado">PSE Avanzado - Certificación completa</option>
+                <option value="pse-empresarial">PSE Empresarial - Certificación corporativa</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="cancelCreateBtn" class="btn-cancel">Cancelar</button>
+            <button type="button" id="confirmCreateBtn" class="btn-confirm">Crear Certificación</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Página del checklist rediseñada con mejor UX -->
+      <div id="checklistPage" class="certification-page" style="display: none;">
+        
+        <!-- Header y progreso en línea horizontal -->
+        <div class="certification-info-bar">
+          <!-- Logo PSE alineado a la izquierda -->
+          <div class="pse-logo-container">
+            <img src="img/PSE.png" alt="PSE Logo" class="pse-logo">
+          </div>
+          
+          <!-- Información del cliente compacta (centro) -->
+          <div class="client-info-compact">
+            <div class="client-main-info">
+              <div class="client-identity">
+                <h2 class="client-name" id="currentClientName">-</h2>
+                <span class="client-nit">NIT: <span id="currentClientNumber">-</span></span>
+              </div>
+              <div class="client-certification">
+                <div class="certification-badge" id="currentCertificationType">-</div>
+              </div>
+            </div>
+            
+            <!-- Menú de opciones del cliente - REMOVIDO -->
+          </div>
+          
+          <!-- Progreso con exportación (mitad derecha) -->
+          <div class="progress-info-compact">
+            <div class="progress-header">
+              <button type="button" class="btn-export-chart" onclick="exportarGraficoProgreso()" title="Exportar gráfico de progreso">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                </svg>
+              </button>
+              <div class="progress-stats-inline">
+                <div class="stat-item-inline">
+                  <span class="stat-number" id="completedItems">0</span>
+                  <span class="stat-label">Completados</span>
+                </div>
+                <div class="stat-item-inline">
+                  <span class="stat-number" id="totalItems">0</span>
+                  <span class="stat-label">Total</span>
+                </div>
+                <div class="stat-item-inline">
+                  <span class="stat-number" id="progressPercentage">0%</span>
+                  <span class="stat-label">Progreso</span>
+                </div>
+              </div>
+            </div>
+            <div class="progress-bar-inline">
+              <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Formulario principal -->
+        <form id="checklistForm" autocomplete="off">
+          <div class="checklist-container">
+            <div id="checklist"></div>
+          </div>
+          
+          <!-- Paginación moderna -->
+          <div class="pagination-modern" id="pagination"></div>
+          
+          <!-- Mensajes del formulario -->
+          <div id="formMsg" class="form-message"></div>
+          
+          <!-- Panel de acciones reorganizado según propuesta -->
+          <div class="action-panel">
+            <!-- Grupo izquierdo: Volver -->
+            <div class="action-left">
+              <button type="button" id="backToWelcomeBtn2" class="btn-action btn-secondary btn-compact">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20 11H7.83L13.42 5.41L12 4L4 12L12 20L13.41 18.59L7.83 13H20V11Z"/>
+                </svg>
+                Volver
+              </button>
+            </div>
+            
+            <!-- Grupo central: Guardar + Exportar PDF -->
+            <div class="action-center">
+              <button type="button" class="btn-action btn-primary" onclick="guardarCambios()">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z"/>
+                </svg>
+                Guardar
+              </button>
+              
+              <button type="button" class="btn-action btn-success" onclick="exportarPDF()">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                </svg>
+                Exportar PDF
+              </button>
+            </div>
+            
+            <!-- Grupo derecho: Cerrar certificación -->
+            <div class="action-right">
+              <button type="button" class="btn-action btn-finish" onclick="finalizarCertificacion()" title="Cerrar certificación">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Página de configuración -->
+      <div id="configPage" class="config-page" style="display: none;">
+        <div class="config-header">
+          <div class="config-brand-section">
+            <!-- Funciones de exportación a la izquierda -->
+            <div class="export-functions">
+              <button type="button" class="btn-export" onclick="downloadProgressReport()" title="Descargar informe completo de avances de todos los clientes activos en Excel">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                </svg>
+                Informe de Clientes
+              </button>
+              </button>
+              <button type="button" class="btn-export" onclick="downloadConfigurationReport()" title="Exportar configuración actual de tipos de certificación y puntos de control">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12,1A11,11 0 0,0 1,12A11,11 0 0,0 12,23A11,11 0 0,0 23,12A11,11 0 0,0 12,1M12,3A9,9 0 0,1 21,12A9,9 0 0,1 12,21A9,9 0 0,1 3,12A9,9 0 0,1 12,3M12,6A1,1 0 0,0 11,7V11H7A1,1 0 0,0 6,12A1,1 0 0,0 7,13H11V17A1,1 0 0,0 12,18A1,1 0 0,0 13,17V13H17A1,1 0 0,0 18,12A1,1 0 0,0 17,11H13V7A1,1 0 0,0 12,6Z"/>
+                </svg>
+                Data Certificación
+              </button>
+            </div>
+            
+            <!-- Logo PSE en el centro -->
+            <div class="config-logo-container">
+              <img src="img/PSE.png" alt="PSE Logo" class="config-logo">
+            </div>
+            
+            <!-- Título y descripción a la derecha -->
+            <div class="config-title-section">
+              <h2>Configuración y Administración</h2>
+              <p>Gestione los parámetros del sistema de certificación</p>
+            </div>
+          </div>
+          
+          <button type="button" class="btn-back" onclick="backToWelcome()" title="Volver al inicio">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+            </svg>
+            Volver
+          </button>
+        </div>
+        
+        <div class="config-content">
+          <div class="config-content-columns">
+            
+            <!-- Columna izquierda: Tipos de Certificación -->
+            <div class="config-column">
+              
+              <div class="config-section">
+                <div class="config-section-header">
+                  <h3>📋 Tipos de Certificación</h3>
+                  <button type="button" class="btn-config btn-add" onclick="addCertificationType()" title="Agregar nuevo tipo">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+                    </svg>
+                    Nuevo Tipo
+                  </button>
+                </div>
+                <div class="config-items" id="certTypesList">
+                  <p>Cargando tipos de certificación...</p>
+                </div>
+              </div>
+              
+            </div>
+            
+            <!-- Columna derecha: Puntos de Certificación -->
+            <div class="config-column">
+              
+              <div class="config-section">
+                <div class="config-section-header">
+                  <h3>✅ Puntos de Certificación</h3>
+                  <div class="config-controls">
+                    <select id="certTypeFilter" onchange="filterCheckpointsByType()" class="cert-filter">
+                      <option value="">Todos los tipos</option>
+                    </select>
+                    <button type="button" class="btn-config btn-add" onclick="addCheckpoint()" title="Agregar nuevo punto">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+                      </svg>
+                      Nuevo Punto
+                    </button>
+                  </div>
+                </div>
+                <div class="config-items" id="checkpointsList">
+                  <p>Cargando puntos de certificación...</p>
+                </div>
+              </div>
+              
+            </div>
+            
+          </div>
+        </div>
+        
+        <!-- Panel de Administración de Archivos JSON -->
+        <div class="config-section json-admin-panel">
+          <div class="config-section-header">
+            <h3>💾 Administración de Datos</h3>
+            <p class="json-admin-info">Gestiona la persistencia local de datos mediante archivos JSON</p>
+          </div>
+          
+          <div class="json-admin-actions">
+            
+            <!-- Exportar Datos -->
+            <div class="json-action-group">
+              <h4>📤 Exportar Datos</h4>
+              <div class="json-buttons">
+                <button type="button" class="btn-config btn-export" onclick="exportarTodosLosDatos()">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                  </svg>
+                  Exportar Todo
+                </button>
+                <button type="button" class="btn-config btn-export" onclick="mostrarEstadisticas()">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"/>
+                  </svg>
+                  Ver Estadísticas
+                </button>
+              </div>
+              <p class="json-help-text">Genera archivos JSON con todos los datos para respaldo</p>
+            </div>
+            
+            <!-- Importar Datos -->
+            <div class="json-action-group">
+              <h4>📥 Importar Datos</h4>
+              <div class="json-import-container">
+                <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="importarDatos(this.files[0])">
+                <button type="button" class="btn-config btn-import" onclick="document.getElementById('importFileInput').click()">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                  </svg>
+                  Importar Archivo JSON
+                </button>
+              </div>
+              <p class="json-help-text">Restaura datos desde un archivo JSON previamente exportado</p>
+            </div>
+            
+            <!-- Instrucciones -->
+            <div class="json-action-group">
+              <h4>📚 Instrucciones de Uso</h4>
+              <div class="json-instructions">
+                <ol>
+                  <li><strong>Automático:</strong> Los datos se guardan localmente y generan archivos JSON automáticamente</li>
+                  <li><strong>Manual:</strong> Descarga los archivos generados y cópialos a la carpeta <code>data/</code> de tu sitio web</li>
+                  <li><strong>Respaldo:</strong> Usa "Exportar Todo" para crear respaldos completos</li>
+                  <li><strong>Restaurar:</strong> Usa "Importar" para restaurar desde respaldos</li>
+                </ol>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        
+        <!-- Modales para la página de configuración -->
+        <!-- Modal para editar/crear tipo de certificación -->
+        <div id="editCertTypeModal" class="modal" style="display: none;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 id="certTypeModalTitle">Agregar Tipo de Certificación</h3>
+              <button type="button" class="close-btn" onclick="hideModal('editCertTypeModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+              <!-- Campo oculto para la clave generada automáticamente -->
+              <input type="hidden" id="certTypeKey">
+              <div class="form-group">
+                <label for="certTypeName">Nombre del Tipo:</label>
+                <input type="text" id="certTypeName" placeholder="ej: PSE Básico" maxlength="100">
+              </div>
+              <div class="form-group">
+                <label for="certTypeDescription">Descripción:</label>
+                <textarea id="certTypeDescription" placeholder="Descripción del tipo de certificación" rows="3"></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" id="deleteCertTypeBtn" class="btn-delete" onclick="deleteCertificationType(editingCertType)" style="display: none;">Eliminar</button>
+              <button type="button" class="btn-cancel" onclick="hideModal('editCertTypeModal')">Cancelar</button>
+              <button type="button" class="btn-confirm" onclick="saveCertificationType()">Guardar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal para editar/crear punto de chequeo -->
+        <div id="editCheckpointModal" class="modal" style="display: none;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 id="checkpointModalTitle">Agregar Punto de Chequeo</h3>
+              <button type="button" class="close-btn" onclick="hideModal('editCheckpointModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group">
+                <label for="checkpointCertType">Tipo de Certificación:</label>
+                <select id="checkpointCertType">
+                  <option value="">Seleccione el tipo</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="checkpointTitle">Título del Punto:</label>
+                <input type="text" id="checkpointTitle" placeholder="Descripción del punto de chequeo" maxlength="200">
+              </div>
+              <div class="form-group">
+                <label for="checkpointExpected">Resultado Esperado:</label>
+                <textarea id="checkpointExpected" placeholder="Describe qué se espera encontrar o validar" rows="4"></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" id="deleteCheckpointBtn" class="btn-delete" onclick="deleteCheckpoint(editingCheckpoint?.certTypeKey, editingCheckpoint?.checkpointId)" style="display: none;">Eliminar</button>
+              <button type="button" class="btn-cancel" onclick="hideModal('editCheckpointModal')">Cancelar</button>
+              <button type="button" class="btn-confirm" onclick="saveCheckpoint()">Guardar</button>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts de la aplicación -->
+  <!-- Sistema de persistencia local (fallback) -->
+  <script src="js/local-json-manager.js"></script>
+  <script src="js/local-json-adapter.js"></script>
+  
+  <!-- Sistemas colaborativos -->
+  <script src="js/collaborative-jsonbin-manager.js"></script>
+  <script src="js/collaborative-github-manager.js"></script>
+  
+  <!-- Adaptador unificado -->
+  <script src="js/unified-collaborative-adapter.js"></script>
+  
+  <!-- Scripts principales -->
+  <script src="pdf-export.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
