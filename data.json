@@ -1,0 +1,11 @@
+{
+  "clientes": {},
+  "avances": {},
+  "tipos": {
+    "pse-conexion-en-linea": {
+      "name": "PSE conexion en Linea",
+      "description": "Certificación Conexion en Linea",
+      "items": []
+    }
+  }
+}
